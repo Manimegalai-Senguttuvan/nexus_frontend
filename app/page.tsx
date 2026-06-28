@@ -6,7 +6,7 @@ import HeroSection from '@/components/sections/HeroSection';
 import FeaturesSection from '@/components/sections/FeaturesSection';
 import DashboardSection from '@/components/sections/DashboardSection';
 import AIChatSection from '@/components/sections/AIChatSection';
-import AnalyticsSection from '@/components/sections/AnalyticsSection';
+import { AnalyticsSection } from "@/components/sections/AnalyticsSection";
 import PricingSection from '@/components/sections/PricingSection';
 import CTASection from '@/components/sections/CTASection';
 import Footer from '@/components/sections/Footer';

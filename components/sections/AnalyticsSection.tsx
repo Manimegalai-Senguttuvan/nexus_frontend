@@ -1,164 +1,122 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { motion, useInView, useScroll, useTransform } from 'framer-motion';
-import { BarChart3, Activity, TrendingUp, Zap, Target } from 'lucide-react';
-import TextReveal from '../effects/TextReveal';
+import { motion, useInView } from "framer-motion";
+import { useRef } from "react";
+import { BarChart3, TrendingUp, Users, Clock } from "lucide-react";
 
-export default function AnalyticsSection() {
-  const containerRef = useRef(null);
-  const isInView = useInView(containerRef, { once: true, margin: '-100px' });
-  const [data, setData] = useState<any>(null);
+const stats = [
+  { label: "Total Tasks", value: 124, change: "+12%", icon: BarChart3, color: "text-purple-400" },
+  { label: "Completed", value: 89, change: "+8%", icon: TrendingUp, color: "text-cyan-400" },
+  { label: "Team Members", value: 12, change: "+2", icon: Users, color: "text-pink-400" },
+  { label: "Avg Time", value: "2.4h", change: "-15%", icon: Clock, color: "text-emerald-400" },
+];
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ['start end', 'end start']
-  });
+const weeklyData = [
+  { day: "Mon", tasks: 45, ai: 12 },
+  { day: "Tue", tasks: 52, ai: 18 },
+  { day: "Wed", tasks: 38, ai: 15 },
+  { day: "Thu", tasks: 65, ai: 22 },
+  { day: "Fri", tasks: 48, ai: 20 },
+  { day: "Sat", tasks: 30, ai: 8 },
+  { day: "Sun", tasks: 25, ai: 5 },
+];
 
-  const y = useTransform(scrollYProgress, [0, 1], [80, -80]);
-  const rotateX = useTransform(scrollYProgress, [0, 0.5], [10, 0]);
+const maxTasks = Math.max(...weeklyData.map((d) => d.tasks));
 
-  useEffect(() => {
-    if (!isInView) return;
-    fetch('/api/analytics')
-      .then(r => r.json())
-      .then(d => setData(d.data))
-      .catch(() => setData(null));
-  }, [isInView]);
-
-  const maxTasks = data?.weekly ? Math.max(...data.weekly.map((d: any) => d.tasks)) : 1;
+export function AnalyticsSection() {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <section id="analytics" ref={containerRef} className="relative py-32 px-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <motion.div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6"
-            initial={{ opacity: 0, scale: 0.8 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-          >
-            <TrendingUp className="w-4 h-4 text-purple-400" />
-            <span className="text-sm text-slate-400">Analytics</span>
-          </motion.div>
+    <section id="analytics" className="relative py-24 px-4 sm:px-6 lg:px-8" ref={ref}>
+      <div className="max-w-6xl mx-auto">
+        {/* Section Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
+        >
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+            Analytics & Insights
+          </h2>
+          <p className="text-slate-400 max-w-xl mx-auto">
+            Track your productivity with real-time data and AI-powered insights
+          </p>
+        </motion.div>
 
-          <TextReveal
-            text="AI Analytics Dashboard"
-            className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4"
-            delay={0.1}
-          />
-          <motion.p
-            className="text-lg text-slate-500 max-w-2xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-          >
-            Real-time productivity insights powered by AI analytics.
-          </motion.p>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+          {stats.map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 30, scale: 0.9 }}
+              animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
+              transition={{ delay: 0.1 + i * 0.1, duration: 0.5 }}
+              className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm hover:border-purple-500/30 transition-colors"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <stat.icon className={`w-5 h-5 ${stat.color}`} />
+                <span className="text-xs text-emerald-400 font-medium">{stat.change}</span>
+              </div>
+              <div className="text-2xl font-bold text-white mb-1">{stat.value}</div>
+              <div className="text-sm text-slate-400">{stat.label}</div>
+            </motion.div>
+          ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Stats Cards */}
-          <div className="lg:col-span-1 space-y-4">
-            {data?.metrics?.map((metric: any, i: number) => (
-              <motion.div
-                key={metric.label}
-                className="glass rounded-2xl p-6 border border-white/10 hover:border-purple-500/20 transition-all duration-300 group"
-                initial={{ opacity: 0, x: -50, scale: 0.9 }}
-                animate={isInView ? { opacity: 1, x: 0, scale: 1 } : {}}
-                transition={{ delay: i * 0.15, duration: 0.7, ease: [0.23, 1, 0.32, 1] }}
-                whileHover={{ scale: 1.03, y: -5 }}
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm text-slate-400">{metric.label}</span>
+        {/* Bar Chart */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.3, duration: 0.6 }}
+          className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm"
+        >
+          <h3 className="text-lg font-semibold text-white mb-6">Weekly Activity</h3>
+          
+          <div className="flex items-end justify-between gap-3 h-48">
+            {weeklyData.map((day, i) => (
+              <div key={day.day} className="flex-1 flex flex-col items-center gap-2">
+                <div className="w-full flex gap-1 h-full items-end">
+                  {/* Tasks bar */}
                   <motion.div
-                    whileHover={{ rotate: 360 }}
-                    transition={{ duration: 0.8 }}
+                    className="flex-1 bg-gradient-to-t from-purple-600 to-purple-400 rounded-t-md relative group"
+                    initial={{ height: 0 }}
+                    animate={isInView ? { height: `${(day.tasks / maxTasks) * 100}%` } : {}}
+                    transition={{ delay: 0.5 + i * 0.1, duration: 1, ease: "easeOut" }}
+                    whileHover={{ scale: 1.05 }}
                   >
-                    <Activity className="w-4 h-4" style={{ color: metric.color }} />
+                    <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-t-md" />
+                  </motion.div>
+                  
+                  {/* AI bar */}
+                  <motion.div
+                    className="flex-1 bg-gradient-to-t from-cyan-600 to-cyan-400 rounded-t-md relative group"
+                    initial={{ height: 0 }}
+                    animate={isInView ? { height: `${(day.ai / maxTasks) * 100}%` } : {}}
+                    transition={{ delay: 0.5 + i * 0.1, duration: 1, ease: "easeOut" }}
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-t-md" />
                   </motion.div>
                 </div>
-                <div className="text-3xl font-bold text-white group-hover:text-gradient transition-colors">
-                  {metric.value}{metric.suffix || ''}
-                </div>
-                <div className="mt-3 h-2 bg-white/10 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full rounded-full"
-                    style={{ backgroundColor: metric.color }}
-                    initial={{ width: 0 }}
-                    animate={isInView ? { width: `${Math.min(metric.value, 100)}%` } : {}}
-                    transition={{ delay: 0.5 + i * 0.2, duration: 1.5, ease: 'easeOut' }}
-                  />
-                </div>
-              </motion.div>
+                <span className="text-xs text-slate-400">{day.day}</span>
+              </div>
             ))}
           </div>
 
-          {/* Chart */}
-          <motion.div
-            className="lg:col-span-2 glass rounded-3xl p-8 border border-white/10 hover:border-purple-500/20 transition-colors duration-300"
-            style={{ y, rotateX, perspective: 1000 }}
-            initial={{ opacity: 0, y: 60, scale: 0.95 }}
-            animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
-            transition={{ delay: 0.3, duration: 0.8 }}
-          >
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h3 className="text-xl font-semibold text-white">Weekly Activity</h3>
-                <p className="text-sm text-slate-500">AI-assisted vs manual tasks</p>
-              </div>
-              <div className="flex items-center gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <motion.div 
-                    className="w-3 h-3 rounded-full bg-purple-500"
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                  <span className="text-slate-400">AI</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <motion.div 
-                    className="w-3 h-3 rounded-full bg-cyan-500"
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-                  />
-                  <span className="text-slate-400">Manual</span>
-                </div>
-              </div>
+          {/* Legend */}
+          <div className="flex items-center gap-6 mt-6">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-purple-400" />
+              <span className="text-sm text-slate-400">Tasks</span>
             </div>
-
-            <div className="flex items-end gap-4 h-64">
-              {data?.weekly?.map((day: any, i: number) => (
-                <div key={day.day} className="flex-1 flex flex-col items-center gap-2 group">
-                  <div className="w-full flex gap-1 h-48 items-end">
-                    <motion.div
-                      className="flex-1 bg-gradient-to-t from-purple-600 to-purple-400 rounded-t-lg relative overflow-hidden"
-                      initial={{ height: 0 }}
-                      animate={isInView ? { height: `${(day.ai / maxTasks) * 100}%` } : {}}
-                      transition={{ delay: 0.5 + i * 0.1, duration: 1, ease: 'easeOut' }}
-                      whileHover={{ brightness: 1.2 }}
-                    >
-                      <motion.div
-                        className="absolute inset-0 bg-gradient-to-t from-transparent to-white/20"
-                        animate={{ y: ['100%', '-100%'] }}
-                        transition={{ duration: 2, repeat: Infinity, delay: i * 0.2 }}
-                      />
-                    </motion.div>
-                    <motion.div
-                      className="flex-1 bg-gradient-to-t from-cyan-600 to-cyan-400 rounded-t-lg"
-                      initial={{ height: 0 }}
-                      animate={isInView ? { height: `${(day.manual / maxTasks) * 100}%` } : {}}
-                      transition={{ delay: 0.6 + i * 0.1, duration: 1, ease: 'easeOut' }}
-                    />
-                  </div>
-                  <span className="text-xs text-slate-500 group-hover:text-purple-400 transition-colors">{day.day}</span>
-                </div>
-              ))}
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-cyan-400" />
+              <span className="text-sm text-slate-400">AI Interactions</span>
             </div>
-          </motion.div>
-        </div>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

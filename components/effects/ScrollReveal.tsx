@@ -40,7 +40,6 @@ export default function ScrollReveal({ children, direction = 'up', delay = 0 }: 
       ref={ref}
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
-      variants={variants}
       style={{ perspective: 1000 }}
     >
       {children}
